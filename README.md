@@ -161,34 +161,11 @@ All mutation-like behaviour is **local only** to keep the assignment simple and 
   - New todo is prepended to the current page’s list.
   - Never sent to the server; it lives only in local state.
 
----
-
-## Deployment Notes
-
-You can deploy this app to any Next.js-compatible host. Common options:
-
-1. **Vercel**
-   - Push this repo to GitHub.
-   - Import the repository on Vercel.
-   - Use default Next.js build settings (`npm run build`, `next start`).
-
-2. **Netlify (Next adapter)**
-   - Use Netlify’s Next.js support with a similar configuration.
-
-When submitting the assignment, include:
 
 - **GitHub repository URL**
 - **Live deployment URL**
 
 ---
 
-## Talking About This Project in an Interview
 
-You can highlight:
-
-- **Query design** – why `["todos", page]` is a good key for paginated data.
-- **Server vs local state** – separating remote data from UI-only mutations (toggle/add).
-- **Caching & performance** – using `staleTime` and per-page keys to avoid overfetching.
-- **Resilience & UX** – offline-aware error state, retry button, skeleton loading, and inline validation.
-- **Code organization** – clear split between layout/providers, page logic, and styling.
 
