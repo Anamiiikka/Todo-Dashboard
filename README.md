@@ -1,60 +1,128 @@
-# RoundTechSquare – Todo Dashboard (Frontend Assignment)
+## RoundTechSquare – Todo Dashboard (Frontend Assignment)
 
 This is a **Todo Dashboard** built for the RoundTechSquare frontend internship assignment using:
 
 - **Next.js (App Router)**
+- **TypeScript**
 - **TanStack Query (@tanstack/react-query)**
 - Public API: `https://jsonplaceholder.typicode.com/todos`
 
 The app demonstrates:
 
-- Paginated fetching of todos with **TanStack Query**
+- **Paginated fetching** of todos with TanStack Query
 - **Client-side pagination controls** (Previous / Next, current page)
-- **Toggle completed state** (local / optimistic style)
-- **Add new todo** locally into the current page (no backend persistence)
-- Clean, responsive layout with a clear component and state structure
+- **Filter chips** (All / Open / Completed)
+- **Local completion toggles** with optimistic-style updates
+- **Add new todo** locally on the current page (no backend persistence)
+- **Offline-aware error handling** with retry
+- **Skeleton loading state** and inline form validation
+- A clean, responsive, dark dashboard-style UI
 
 ---
 
-## Getting Started
+## Features
 
-### 1. Install dependencies
+- **Todo dashboard UI**
+  - Card-based layout with toolbar, filter pills, list, and pagination.
+  - Responsive styling in `globals.css`.
+
+- **Pagination**
+  - Page size: **10** items (`PAGE_SIZE = 10`).
+  - Total items: **200** (`TOTAL_ITEMS = 200`) to match jsonplaceholder.
+  - Derived page count: `TOTAL_PAGES = Math.ceil(TOTAL_ITEMS / PAGE_SIZE)`.
+  - Previous/Next buttons with disabled states on first/last page.
+
+- **Filtering**
+  - `All` – shows all todos on the current page.
+  - `Open` – shows only `completed === false`.
+  - `Completed` – shows only `completed === true`.
+
+- **Local state overrides**
+  - `localTodosByPage: Record<number, Todo[]>` holds per-page overrides.
+  - If local data exists for a page, it is rendered instead of the remote list.
+  - Toggling completion and adding todos never hit the API; they are kept in memory.
+
+- **Error handling & offline awareness**
+  - API errors surface in a dedicated error state block with:
+    - User-friendly message.
+    - Exact error text (where available).
+    - **Retry** button that calls React Query’s `refetch`.
+  - Listens to `online` / `offline` events:
+    - When offline, shows “You appear to be offline…” guidance.
+
+- **Loading UX**
+  - Shimmering loading bar.
+  - **Skeleton list** of placeholder rows while fetching.
+
+- **Form validation**
+  - Inline validation message when the user submits an empty title.
+  - Error text styled via `.input-error` in `globals.css`.
+
+---
+
+## Project Structure (Core Files)
+
+- `app/layout.tsx`
+  - Root layout for the App Router.
+  - Imports global styles and wraps children with `AppProviders`.
+
+- `app/providers.tsx`
+  - **Client component** that creates a configured `QueryClient`:
+    - `staleTime: 30_000`
+    - `retry: 1`
+    - `refetchOnWindowFocus: false`
+  - Wraps the app with:
+    - `QueryClientProvider`
+    - `ReactQueryDevtools`
+
+- `app/page.tsx`
+  - **Main Todo Dashboard**.
+  - Uses `useQuery` for per-page data fetching.
+  - Manages filter, pagination, todo toggle, and add-todo logic.
+  - Implements offline-aware error state and retry button.
+
+- `app/globals.css`
+  - Global styling, including:
+    - App shell, cards, toolbar, chips, list rows, pagination.
+    - Loading bar and skeleton rows.
+    - Form styles, input focus, inline error, and retry button.
+
+---
+
+## Setup & Running Locally
+
+### 1. Prerequisites
+
+- **Node.js** 18+ (recommended)  
+- **npm** (comes with Node) or another package manager like **yarn** / **pnpm**
+
+### 2. Clone the project
+
+```bash
+git clone <your-repo-url>
+cd <your-repo-folder>
+```
+
+### 3. Install dependencies
 
 ```bash
 npm install
 ```
 
-### 2. Run the development server
+### 4. Run the development server
 
 ```bash
 npm run dev
 ```
 
-The app will be available at `http://localhost:3000`.
+Then open `http://localhost:3000` in your browser.
 
----
+### 5. Build for production (optional)
 
-## Implementation Details
-
-### Tech & Structure
-
-- `app/layout.tsx`
-  - Root layout for the App Router.
-  - Wraps children with global styles and `AppProviders`.
-
-- `app/providers.tsx`
-  - **Client component** that creates a `QueryClient` and wraps the app with:
-    - `QueryClientProvider`
-    - `ReactQueryDevtools`
-
-- `app/page.tsx`
-  - **Main Todo Dashboard** UI.
-  - Uses `useQuery` from TanStack Query to fetch todos.
-  - Implements pagination, filtering, toggle, and add-todo logic.
-
-- `app/globals.css`
-  - Global styling for layout, cards, list items, buttons, etc.
-  - Responsive, with a dashboard-style design.
+```bash
+npm run build
+npm start
+```
 
 ---
 
@@ -62,81 +130,65 @@ The app will be available at `http://localhost:3000`.
 
 - Query key format: **`["todos", page]`**
 - Fetch function:
-  - Calls `https://jsonplaceholder.typicode.com/todos?_page=<page>&_limit=10`
-  - Throws on non-2xx responses for proper error handling.
+  - Calls: `https://jsonplaceholder.typicode.com/todos?_page=<page>&_limit=10`
+  - Throws on non-2xx responses so React Query can enter the error state.
+- React Query configuration (in `providers.tsx`):
+  - `staleTime: 30_000` – reduces unnecessary refetches when switching pages quickly.
+  - `retry: 1` – retries once for transient errors, then shows the error UI.
+  - `refetchOnWindowFocus: false` – avoids surprise refetches when tab gains focus.
 - Loading & error states:
-  - **Loading**: animated shimmer bar and message.
-  - **Error**: human-readable message plus the error text.
-- `staleTime` set so page data is cached briefly while navigating.
-
----
-
-## Pagination Logic
-
-- **Page size**: `PAGE_SIZE = 10`
-- **Total todos**: `TOTAL_ITEMS = 200` (jsonplaceholder fixed size)
-- **Total pages**: computed from `TOTAL_ITEMS / PAGE_SIZE`
-- Every page uses its own query:
-  - `useQuery({ queryKey: ["todos", page], queryFn: () => fetchTodos(page) })`
-- Pagination controls:
-  - “Prev” / “Next” buttons
-  - Current page indicator: `Page X / Y`
-  - Buttons are disabled on the first / last page during loading.
+  - **Loading**: shimmer bar + skeleton rows.
+  - **Error**: offline-aware message, network error details, and a **Retry** button.
 
 ---
 
 ## Local State: Toggle & Add Todo
 
-All mutation-like behaviour is **local only** to keep the assignment simple but realistic.
+All mutation-like behaviour is **local only** to keep the assignment simple and focus on UI/UX and data fetching.
 
 - `localTodosByPage: Record<number, Todo[]>`
-  - Keeps per-page overrides of todos.
-  - If we have a local copy for the current page, we render that instead of the remote list.
+  - Stores local overrides per page.
+  - If there is a local array for the current page, it is rendered instead of the remote array.
 
 - **Toggle completed**
-  - Clicking the custom checkbox updates the `completed` flag in `localTodosByPage` for the current page.
-  - This behaves like an **optimistic update** (instant UI feedback, no network call).
+  - Clicking the circular checkbox updates `completed` in the local page array.
+  - Behaves like an optimistic update: instant UI feedback, no API call.
 
 - **Add new todo**
-  - Form at the top of the dashboard.
-  - Creates a synthetic todo with `Date.now()` as id.
-  - Prepends it to the current page’s array in `localTodosByPage`.
-  - Note: the new item is **not sent** to the API; it is stored only in memory.
-
-Filtering options:
-
-- `All` — show all todos for the current page.
-- `Open` — only todos where `completed === false`.
-- `Completed` — only todos where `completed === true`.
+  - Top-of-card form adds a synthetic todo object:
+    - `id` uses `Date.now()` (unique per session).
+    - `userId` is set to `0` to distinguish synthetic items.
+  - New todo is prepended to the current page’s list.
+  - Never sent to the server; it lives only in local state.
 
 ---
 
 ## Deployment Notes
 
-You can deploy this app to any Next.js-compatible host. Two common options:
+You can deploy this app to any Next.js-compatible host. Common options:
 
 1. **Vercel**
    - Push this repo to GitHub.
    - Import the repository on Vercel.
-   - Use default build settings (`npm run build`, `next start`).
+   - Use default Next.js build settings (`npm run build`, `next start`).
 
 2. **Netlify (Next adapter)**
-   - Use Netlify’s Next.js support with a similar setup.
+   - Use Netlify’s Next.js support with a similar configuration.
 
-Once deployed, submit:
+When submitting the assignment, include:
 
-- **GitHub repo link**
+- **GitHub repository URL**
 - **Live deployment URL**
 
 ---
 
-## How to Explain This in an Interview
+## Talking About This Project in an Interview
 
-Key points you can mention:
+You can highlight:
 
-- **Query design**: why `["todos", page]` is a good key for paginated data.
-- **Caching behavior**: how TanStack Query caches each page separately.
-- **Local state vs. server state**: todos from the API are server state; toggles and new items live in local React state to keep the task simple.
-- **Pagination correctness**: changing page updates the query key, which triggers the correct API call.
-- **UI / UX choices**: clear separation of layout, toolbar, add form, list, and pagination for maintainability and readability.
+- **Query design** – why `["todos", page]` is a good key for paginated data.
+- **Server vs local state** – separating remote data from UI-only mutations (toggle/add).
+- **Caching & performance** – using `staleTime` and per-page keys to avoid overfetching.
+- **Resilience & UX** – offline-aware error state, retry button, skeleton loading, and inline validation.
+- **Code organization** – clear split between layout/providers, page logic, and styling.
 
