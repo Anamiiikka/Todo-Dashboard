@@ -1,0 +1,24 @@
+{
+  "name": "roundtechsquare-todo-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.50.0",
+    "@tanstack/react-query-devtools": "^5.50.0",
+    "next": "15.0.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "25.3.0",
+    "@types/react": "19.2.14",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "15.0.0"
+  }
+}
