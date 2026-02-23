@@ -245,6 +245,12 @@ button {
   color: #9ca3af;
 }
 
+.input-error {
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: var(--danger);
+}
+
 .list-card {
   border-radius: 18px;
   border: 1px solid rgba(148, 163, 184, 0.45);
@@ -378,6 +384,29 @@ button {
   color: #fecaca;
 }
 
+.retry-button {
+  margin-top: 10px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(248, 250, 252, 0.75);
+  background: rgba(15, 23, 42, 0.9);
+  color: #e5e7eb;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.retry-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.retry-button:not(:disabled):hover {
+  background: rgba(30, 64, 175, 0.9);
+  box-shadow:
+    0 0 0 1px rgba(191, 219, 254, 0.9),
+    0 10px 26px rgba(37, 99, 235, 0.75);
+}
+
 .loading-bar {
   margin-top: 8px;
   height: 4px;
@@ -392,6 +421,48 @@ button {
   border-radius: inherit;
   background: linear-gradient(90deg, #38bdf8, #4f46e5, #22c55e);
   animation: shimmer 1.1s infinite linear;
+}
+
+.loading-skeleton-list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0 4px 0 0;
+}
+
+.loading-skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+}
+
+.loading-skeleton-checkbox {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(30, 64, 175, 0.6);
+}
+
+.loading-skeleton-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.loading-skeleton-line {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(30, 64, 175, 0.6);
+}
+
+.loading-skeleton-line.primary {
+  width: 60%;
+}
+
+.loading-skeleton-line.secondary {
+  width: 40%;
+  opacity: 0.8;
 }
 
 @keyframes shimmer {

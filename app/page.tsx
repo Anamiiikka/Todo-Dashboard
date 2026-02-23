@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import type { FormEvent } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 type Todo = {
@@ -38,9 +39,11 @@ export default function TodoDashboardPage() {
   >({});
   const [filter, setFilter] = useState<"all" | "open" | "completed">("all");
   const [newTitle, setNewTitle] = useState("");
+  const [inputError, setInputError] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const [isOffline, setIsOffline] = useState(false);
 
-  const { data, isLoading, isError, error, isFetching } = useQuery({
+  const { data, isLoading, isError, error, isFetching, refetch } = useQuery({
     queryKey: ["todos", page],
     queryFn: () => fetchTodos(page),
     staleTime: 30_000
@@ -65,6 +68,20 @@ export default function TodoDashboardPage() {
     return local?.length ?? data?.length ?? 0;
   }, [localTodosByPage, page, data]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const update = () => {
+      setIsOffline(!navigator.onLine);
+    };
+    update();
+    window.addEventListener("online", update);
+    window.addEventListener("offline", update);
+    return () => {
+      window.removeEventListener("online", update);
+      window.removeEventListener("offline", update);
+    };
+  }, []);
+
   function handleToggle(id: number) {
     setLocalTodosByPage((prev) => {
       const current = prev[page] ?? data ?? [];
@@ -75,10 +92,15 @@ export default function TodoDashboardPage() {
     });
   }
 
-  function handleAddTodo(e: React.FormEvent) {
+  function handleAddTodo(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const title = newTitle.trim();
-    if (!title) return;
+    if (!title) {
+      setInputError("Title cannot be empty");
+      return;
+    }
+
+    setInputError(null);
 
     setIsAdding(true);
 
@@ -158,13 +180,19 @@ export default function TodoDashboardPage() {
                 className="add-input"
                 placeholder="Add a todo for this page…"
                 value={newTitle}
-                onChange={(e) => setNewTitle(e.target.value)}
+                onChange={(e) => {
+                  setNewTitle(e.target.value);
+                  if (inputError && e.target.value.trim()) {
+                    setInputError(null);
+                  }
+                }}
                 aria-label="New todo title"
               />
               <p className="add-hint">
                 New todos are kept only in the browser and are not sent to the
                 API.
               </p>
+              {inputError && <p className="input-error">{inputError}</p>}
             </div>
             <button
               type="submit"
@@ -190,14 +218,36 @@ export default function TodoDashboardPage() {
                 <div className="loading-bar">
                   <div className="loading-bar-inner" />
                 </div>
+                <ul className="loading-skeleton-list">
+                  {Array.from({ length: 4 }).map((_, index) => (
+                    <li key={index} className="loading-skeleton-row">
+                      <div className="loading-skeleton-checkbox" />
+                      <div className="loading-skeleton-text">
+                        <div className="loading-skeleton-line primary" />
+                        <div className="loading-skeleton-line secondary" />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
               </div>
             ) : isError ? (
               <div className="error-state">
-                Could not load todos.
-                <br />
-                <span style={{ fontSize: "0.8rem", opacity: 0.9 }}>
+                <p>
+                  {isOffline
+                    ? "You appear to be offline. Check your internet connection and try again."
+                    : "Could not load todos."}
+                </p>
+                <p style={{ fontSize: "0.8rem", opacity: 0.9 }}>
                   {(error as Error)?.message ?? "Unknown error"}
-                </span>
+                </p>
+                <button
+                  type="button"
+                  className="retry-button"
+                  onClick={() => refetch()}
+                  disabled={isFetching}
+                >
+                  Retry
+                </button>
               </div>
             ) : pageTodos.length === 0 ? (
               <div className="empty-state">
