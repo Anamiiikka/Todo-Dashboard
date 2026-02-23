@@ -99,8 +99,8 @@ The app demonstrates:
 ### 2. Clone the project
 
 ```bash
-git clone <your-repo-url>
-cd <your-repo-folder>
+git clone https://github.com/Anamiiikka/Todo-Dashboard.git
+cd Todo-Dashboard
 ```
 
 ### 3. Install dependencies
@@ -161,9 +161,10 @@ All mutation-like behaviour is **local only** to keep the assignment simple and 
   - New todo is prepended to the current page’s list.
   - Never sent to the server; it lives only in local state.
 
+## Links
 
-- **GitHub repository URL**
-- **Live deployment URL**
+- **GitHub repository URL**: `https://github.com/Anamiiikka/Todo-Dashboard`
+- **Live deployment URL**: `https://todo-dashboard-gtri-8ap1m2izh-anamika-singhs-projects.vercel.app/`
 
 ---
 
